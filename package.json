@@ -3,20 +3,26 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "expo": "~57.0.22",
+    "@reactvision/react-viro": "2.58.1",
+    "expo": "~57.0.23",
+    "expo-dev-client": "~57.0.19",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --dev-client",
     "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "ios": "expo run:ios --device",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "patch-package",
+    "test": "node --experimental-strip-types --test tests/placementGeometry.test.cjs tests/placementState.test.cjs tests/measurement.test.cjs"
   },
   "private": true
 }

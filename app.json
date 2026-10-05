@@ -1,25 +1,34 @@
 {
   "expo": {
-    "name": "5ahead-proj",
-    "slug": "5ahead-proj",
+    "name": "AR Placement",
+    "slug": "ar-placement",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.calinbaculescu.fiveahead.arplacement",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Use the camera to position a container footprint and measure ground contact points.",
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use your microphone",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [
+      [
+        "@reactvision/react-viro",
+        {
+          "ios": {
+            "cameraUsagePermission": "Use the camera to position a container footprint and measure ground contact points."
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a35c8e96-890e-4cdb-adad-6ff239f2104e"
+      }
     }
   }
 }

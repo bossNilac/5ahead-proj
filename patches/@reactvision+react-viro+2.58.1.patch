@@ -1,0 +1,26 @@
+diff --git a/node_modules/@reactvision/react-viro/components/AR/ViroARPlaneSelector.tsx b/node_modules/@reactvision/react-viro/components/AR/ViroARPlaneSelector.tsx
+index 470c47f..28f8872 100644
+--- a/node_modules/@reactvision/react-viro/components/AR/ViroARPlaneSelector.tsx
++++ b/node_modules/@reactvision/react-viro/components/AR/ViroARPlaneSelector.tsx
+@@ -454,7 +454,7 @@ export class ViroARPlaneSelector extends React.Component<Props, State> {
+           ? vertices3D.map(
+               ([x, _y, z]: [number, number, number]): [number, number] => [
+                 x,
+-                z,
++                -z,
+               ]
+             )
+           : undefined;
+diff --git a/node_modules/@reactvision/react-viro/dist/components/AR/ViroARPlaneSelector.js b/node_modules/@reactvision/react-viro/dist/components/AR/ViroARPlaneSelector.js
+index b872a49..f072044 100644
+--- a/node_modules/@reactvision/react-viro/dist/components/AR/ViroARPlaneSelector.js
++++ b/node_modules/@reactvision/react-viro/dist/components/AR/ViroARPlaneSelector.js
+@@ -309,7 +309,7 @@ class ViroARPlaneSelector extends React.Component {
+             const vertices2D = vertices3D && vertices3D.length >= 3
+                 ? vertices3D.map(([x, _y, z]) => [
+                     x,
+-                    z,
++                    -z,
+                 ])
+                 : undefined;
+             // ViroPolygon renders in XY; vertices are in XZ — rotate to align.

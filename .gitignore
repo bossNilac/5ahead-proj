@@ -6,6 +6,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+tmp/
 web-build/
 expo-env.d.ts
 
@@ -28,6 +29,9 @@ yarn-error.*
 
 # macOS
 .DS_Store
+__MACOSX/
+# Archived experimental depth model; plane-only prototype does not bundle it.
+assets/depth/
 *.pem
 
 # local env files
