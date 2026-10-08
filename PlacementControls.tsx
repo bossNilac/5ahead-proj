@@ -1,32 +1,93 @@
-import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
-import type { PlacementProps } from './types';
-
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import type { PlacementProps } from "./types";
+import { Action, IconButton } from "./src/ui/components";
+import { colors } from "./src/ui/theme";
 export default function PlacementControls({ model, dispatch }: PlacementProps) {
-  const [mode, setMode] = useState<'move' | 'rotate'>('move');
   const [fine, setFine] = useState(false);
-  const disabled = model.assessmentLocked || model.tracking !== 'normal';
-  const step = fine ? .01 : .1;
-  return <View>
-    <View style={styles.row}>
-      <Button title="Move" onPress={() => setMode('move')} />
-      <Button title="Rotate" onPress={() => setMode('rotate')} />
-    </View>
-    {mode === 'move' && <>
-      <Text>World axes; drag moves X/Z only. Step: {step * 100} cm</Text>
-      <View style={styles.row}>
-        <Button title="X −" disabled={disabled} onPress={() => dispatch({type:'move', x:-step, z:0})} />
-        <Button title="X +" disabled={disabled} onPress={() => dispatch({type:'move', x:step, z:0})} />
-        <Button title="Z −" disabled={disabled} onPress={() => dispatch({type:'move', x:0, z:-step})} />
-        <Button title="Z +" disabled={disabled} onPress={() => dispatch({type:'move', x:0, z:step})} />
+  const step = fine ? 0.01 : 0.1;
+  const disabled = model.assessmentLocked || model.tracking !== "normal";
+  return (
+    <View style={s.wrapper}>
+      <View style={s.row}>
+        <View style={s.circle}>
+          <IconButton
+            icon="rotate-left"
+            label="Rotate −5 degrees"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "rotate", delta: -5 })}
+          />
+        </View>
+        <View style={s.circle}>
+          <IconButton
+            icon="up"
+            label="Move Z −"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "move", x: 0, z: -step })}
+          />
+        </View>
+        <View style={s.circle}>
+          <IconButton
+            icon="rotate-right"
+            label="Rotate +5 degrees"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "rotate", delta: 5 })}
+          />
+        </View>
       </View>
-      <Button title={fine ? 'Use 10 cm steps' : 'Use 1 cm steps'} onPress={() => setFine(v => !v)} />
-    </>}
-    {mode === 'rotate' && <View style={styles.row}>
-      <Button title="−5°" disabled={disabled} onPress={() => dispatch({type:'rotate', delta:-5})} />
-      <Button title="+5°" disabled={disabled} onPress={() => dispatch({type:'rotate', delta:5})} />
-      <Button title="Reset rotation" disabled={disabled} onPress={() => dispatch({type:'reset-rotation'})} />
-    </View>}
-  </View>;
+      <View style={s.row}>
+        <View style={s.circle}>
+          <IconButton
+            icon="left"
+            label="Move X −"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "move", x: -step, z: 0 })}
+          />
+        </View>
+        <Text style={s.step}>{step * 100} cm</Text>
+        <View style={s.circle}>
+          <IconButton
+            icon="right"
+            label="Move X +"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "move", x: step, z: 0 })}
+          />
+        </View>
+      </View>
+      <View style={s.row}>
+        <Action
+          compact
+          variant="quiet"
+          label={fine ? "10 cm steps" : "1 cm steps"}
+          onPress={() => setFine((v) => !v)}
+        />
+        <View style={s.circle}>
+          <IconButton
+            icon="down"
+            label="Move Z +"
+            disabled={disabled}
+            onPress={() => dispatch({ type: "move", x: 0, z: step })}
+          />
+        </View>
+        <Action
+          compact
+          variant="quiet"
+          label="0°"
+          onPress={() => dispatch({ type: "reset-rotation" })}
+          disabled={disabled}
+        />
+      </View>
+    </View>
+  );
 }
-const styles = StyleSheet.create({ row: { flexDirection: 'row', justifyContent: 'space-around' } });
+const s = StyleSheet.create({
+  wrapper: { gap: 4 },
+  row: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
+  circle: { backgroundColor: colors.orange, borderRadius: 22 },
+  step: { width: 44, textAlign: "center", fontSize: 11, color: "#CBD2D9" },
+});

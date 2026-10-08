@@ -3,12 +3,21 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@reactvision/react-viro": "2.58.1",
-    "expo": "~57.0.23",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
     "expo-dev-client": "~57.0.19",
+    "expo-file-system": "~57.0.7",
+    "expo-print": "~57.0.2",
+    "expo-sharing": "~57.0.22",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
@@ -22,7 +31,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "postinstall": "patch-package",
-    "test": "node --experimental-strip-types --test tests/placementGeometry.test.cjs tests/placementState.test.cjs tests/measurement.test.cjs"
+    "test": "node --experimental-strip-types --test tests/*.test.cjs",
+    "export": "expo export --platform all"
   },
   "private": true
 }

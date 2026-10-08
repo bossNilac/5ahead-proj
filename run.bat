@@ -32,10 +32,14 @@ where node >nul 2>&1
 if errorlevel 1 goto missingnode
 where npm >nul 2>&1
 if errorlevel 1 goto missingnode
+node -e "const [major, minor] = process.versions.node.split('.').map(Number); if (major < 22 || (major === 22 && minor < 13)) { console.error('Expo 57 requires Node.js 22.13 or newer.'); process.exit(1); }"
+if errorlevel 1 goto failed
 echo Installing locked dependencies...
 call npm ci
 if errorlevel 1 goto failed
 call npm run typecheck
+if errorlevel 1 goto failed
+call npm test
 if errorlevel 1 goto failed
 if "%AR_BUILD%"=="0" goto start
 
@@ -58,7 +62,7 @@ echo Install the development build on your registered iPhone using the EAS link.
 echo Enable iOS Developer Mode if prompted.
 
 :start
-echo Scan the QR code with your iPhone Camera to open the installed AR Placement app.
+echo Scan the QR code with your iPhone Camera to open the installed PLCR app.
 echo Expo Go cannot run this app. For first-time setup, use: run.bat --build
 echo Keep the phone and computer on the same Wi-Fi, or use: run.bat --tunnel
 call npx expo start --dev-client %AR_CONNECTION%

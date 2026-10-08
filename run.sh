@@ -24,9 +24,12 @@ command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1 || {
   exit 1
 }
 
+node -e 'const [major, minor] = process.versions.node.split(".").map(Number); if (major < 22 || (major === 22 && minor < 13)) { console.error("Expo 57 requires Node.js 22.13 or newer."); process.exit(1); }'
+
 printf '%s\n' 'Installing locked dependencies…'
 npm ci
 npm run typecheck
+npm test
 
 if "$build"; then
   printf '%s\n' \
@@ -43,8 +46,8 @@ if "$build"; then
 fi
 
 printf '%s\n' \
-  'Starting AR Placement. Scan the QR code with the iPhone Camera app.' \
-  'Open it in your installed AR Placement development build, not Expo Go.' \
+  'Starting PLCR. Scan the QR code with the iPhone Camera app.' \
+  'Open it in your installed PLCR development build, not Expo Go.' \
   'If you have not installed it yet, stop and run: bash run.sh --build' \
   'For LAN mode, keep your iPhone and computer on the same Wi-Fi.'
 exec npx expo start --dev-client "$connection"

@@ -1,90 +1,119 @@
-# Container ground assessment — Must-have prototype
+# PLCR
 
-React Native + Expo 57 + TypeScript, using @reactvision/react-viro 2.58.1 on
-physical iPhones. Designed for iPhone 15 without LiDAR. ARKit uses camera and
-motion tracking; no GPS, AHN, terrain mesh, backend or external measurement input.
+A React Native + Expo SDK 57 app for positioning a standard **6 × 3 m** container
+and measuring relative ground heights at six support points. The interface follows
+the 17 references in `lo-fi/`: orange headers and menus, charcoal backgrounds,
+deep blue actions, green capture feedback, and white measurement reports.
 
-## Run on Windows with an iPhone
+## Run
 
-Use Node.js 22.13+ and the project's installed Expo development app:
+Requires **Node.js 22.13+**, npm, and a physical ARKit-capable iPhone.
+Viro requires a development build; **Expo Go cannot run this app**.
 
-```bat
-cd /d C:\Users\Calin\Desktop\5ahead-proj
-run.bat
+```sh
+./run.sh
+# First-time setup, or after adding native dependencies:
+./run.sh --build
+# If the phone and computer cannot use the same Wi-Fi:
+./run.sh --tunnel
 ```
 
-Scan the QR with the iPhone Camera to open the development app. Expo Go cannot
-load Viro's native code. Same Wi-Fi is easiest; `run.bat --tunnel` is available.
-These application changes work in the existing Viro development build. To also
-remove the previously bundled location module/permissions from the native app,
-create and install a fresh build with `run.bat --build`. This uses EAS cloud
-builds and your paid Apple developer account; no Mac is needed on Windows.
+`run.sh` mirrors `run.bat` on Windows: install locked dependencies, check
+TypeScript, run tests, optionally configure/register/build an iPhone development
+app through EAS, and start Metro in development-client mode. EAS device builds
+require Expo login and Apple Developer Program membership. Install the resulting
+build, enable iOS Developer Mode if prompted, and scan Metro's QR code.
 
-On macOS, local native builds use `npx expo prebuild --platform ios`, followed by
-`npx expo run:ios --device`. Viro's Expo plugin and camera permission are in
-app.json. Preserve the existing bundle identifier and EAS project settings.
+**This redesign adds native modules for storage, safe areas, SVG, PDF generation,
+and sharing. Install a fresh development build before testing on your phone.**
+The bundle identifier, EAS project ID, and existing Viro patch are preserved.
+The app's display name is now PLCR.
+
+On macOS, local builds can use `npx expo run:ios --device`. On Linux/Windows, use
+the EAS cloud build in `run.sh --build` / `run.bat --build`.
+
+A browser preview supports onboarding, preferences, profile, history and reports:
+
+```sh
+npm ci
+npm run web
+```
+
+AR itself requires the iPhone app. Browser storage and phone storage are separate.
+A browser-created draft opens an explanation of how to continue on the phone.
 
 ## Workflow
 
-1. Scan slowly in daylight/good lighting. Select a stable automatic floor patch,
-   or use Manual ground to tap an approximate initial ground point. Confirm it.
-2. Place the fixed **600 × 300 cm** footprint. Drag or use X/Z controls to slide
-   it; rotate using the buttons. There is no dimension-entry screen.
-3. Press **Lock placement and measure**. No drag, movement or rotation can change
-   it during measurement. The six points are corners and long-edge midpoints.
-4. Follow the highlighted point, in order 1–6. Rest the centre of the phone's
-   bottom edge on the ground. Use the same phone/case throughout, upright in
-   portrait, camera uncovered and facing textured surroundings. Do not tilt or
-   press down. Keep still for two seconds, then use the single bottom button to
-   confirm ground contact and capture when feedback permits it.
-5. Read height differences and estimated local contact XYZ in centimetres.
-   Edit placement clears measurements. Rescan ground clears placement and
-   measurements without remounting the camera or restarting ARKit.
+1. Follow or skip the onboarding tutorial. Camera permission is requested on
+   demand, either at the tutorial's final screen or when opening AR.
+2. Create a named project, with optional location and notes. The draft is saved
+   locally before starting the camera.
+3. **Scan ground:** slowly scan textured ground in good lighting. Select a stable
+   automatic surface or choose Manual and tap an approximate ground hit. Confirm
+   the intended surface to freeze its height.
+4. **Position:** place, drag, move and rotate the container. Controls offer 1 cm
+   and 10 cm steps, ±5° rotation and rotation reset. The wireframe volume is a
+   visual aid; the contact footprint remains on the confirmed ground plane.
+5. **Measure:** lock the placement, then visit points 1–6 in order. Rest the center
+   of the phone's bottom edge on the ground, upright in portrait, with the camera
+   uncovered. Use the same phone/case at every point. Hold still for two seconds
+   and explicitly confirm ground contact to capture. Interrupted tracking requires
+   restarting all measurements before proceeding.
+6. **Results:** inspect capture details, remeasure if needed, then save and review
+   the completed report. Export & share generates a PDF and opens the native share
+   sheet; the browser uses its print dialog.
+7. History supports searching, favorites, opening reports, continuing drafts with
+   a fresh AR scan, and deleting projects. Completed measurements survive restarts.
 
-The full footprint needs a clear 6 × 3 m site. Apartment tests can check rendering
-and controls, but all six points must be physically accessible to finish capture.
+Settings persist day/night theme and English/Dutch navigation and control labels.
+Technical guidance and PDF reports remain English. Account provides a local,
+optional name/email/company profile used in reports, plus privacy information.
+Contact opens the repository's real issue tracker.
 
-## Coordinates and accuracy
+## Data and accuracy
 
-Viro world coordinates are **metres** internally; the UI displays centimetres.
-X/Y/Z belong to the current AR session; Y is vertical displacement. They are not
-latitude, longitude or surveyed elevation. World alignment is **Gravity**.
+There is no server or authentication service in this repository. Projects,
+preferences, profile, captures and optional AR photos are stored on the device.
+Storage writes are queued and awaited; failures are surfaced without claiming a
+successful save. Invalid saved data is reported rather than silently overwritten.
+No sample projects or invented measurement values appear in the shipped UI.
 
-Point 1 establishes the reference camera height. With the same upright phone and
-bottom-edge contact at every point, the unknown camera-to-bottom vertical offset
-cancels when calculating `cameraY(point) - cameraY(point1)`. Estimated ground Y
-adds this difference to point 1's initially selected AR ground Y. X/Z use the
-captured camera position as an approximation of horizontal contact location;
-the camera-to-edge horizontal offset is not calibrated. Raw camera coordinates,
-planned support coordinates and estimated contact coordinates are separate.
+AR world coordinates are **metres** internally and **centimetres** in reports.
+Point 1 establishes the height reference. The same upright phone/case at every
+point lets its unknown camera-to-bottom vertical offset cancel in the difference.
+Camera X/Z approximate horizontal contact location; that offset is not calibrated.
+These are local relative estimates, not geographic coordinates or surveyed
+heights. Capture conditions do not certify accuracy or installation suitability.
 
-Capture requires normal tracking, camera X/Z within 30 cm of the target,
-upright tilt ≤10°, a continuous two-second steady hold within a three-second
-window, no gaps over 650 ms, a fresh pose within 750 ms, and movement spread
-≤1.5 cm. These are configurable gates, **not an accuracy certification**. The app
-cannot sense physical ground contact. Align the bottom edge to the numbered
-square; the 30 cm gate is only a camera-proximity tolerance, not permission to
-measure away from the intended point. Aim fully upright; 10° is a practical
-acceptance limit, not the recommended posture. AR drift, poor texture, lighting and
-inconsistent phone contact can affect measurements. ±5 cm remains unvalidated.
+Captures still require normal tracking, proximity within 30 cm, tilt ≤10°, a
+continuous two-second hold with ≤1.5 cm movement spread, fresh camera data and no
+long sample gaps. The app cannot sense physical ground contact. Report colors
+show absolute relative height (green ≤2 cm, orange ≤5 cm, red >5 cm), **not** a
+validated ground suitability classification.
 
-## Architecture
+Saved AR coordinates cannot be restored into a new camera session. Drafts restart
+scanning; completed projects reopen their reports. Rescanning during an active
+assessment resets application state without remounting the AR navigator.
 
-- `placementState.ts`: automatic candidate stabilization, immutable initial
-  world pose, explicit movement, final measurement lock and state-only reset.
-- `ARPlacementScene.tsx` / `ARViewport.tsx`: stable navigator with Gravity,
-  current selector anchor forwarding and camera transform updates. Automatic
-  and manual modes share the same frozen scene-root renderer.
-- `FrozenPlacement.tsx`: footprint and six numbered markers, independent of
-  detected-plane nodes. Later plane updates cannot alter the saved pose.
-- `src/assessment/measurement.ts`: support geometry, capture quality and relative
-  measurements. `useAssessment.ts` stores captures in React application state.
-  Tracking interruptions block capture until all measurements are restarted.
-- `App.tsx`: guided three-step UI. Debug can log the local assessment data.
+## Architecture and checks
 
-Only Musts are in this milestone. Optional photos, 3D container volume, automatic
-suitability classification and a verified accuracy target are deferred. This
-does not yet determine whether a site is safe/suitable for a real container.
+- `App.tsx`: application navigation, orange menus, profile and project forms.
+- `src/ui/`: shared controls, safe-area layout, icons, vector container artwork,
+  theme and navigation translations.
+- `src/screens/`: onboarding, project history, report, and AR workflow.
+- `src/projects/`: typed local data, validated persistence, report summary and PDF.
+- `placementState.ts` / `placementGeometry.ts`: existing immutable placement logic.
+- `ARPlacementScene.tsx` / `ARViewport.tsx` / `FrozenPlacement.tsx`: native AR scene,
+  stable Gravity-aligned navigator, volume and numbered contact markers.
+- `src/assessment/`: existing quality gates, capture and relative-height logic.
 
-See [MUST_IMPLEMENTATION.md](MUST_IMPLEMENTATION.md) for requirement coverage and
-[TESTING.md](TESTING.md) for physical acceptance checks.
+```sh
+npm run typecheck
+npm test
+npm run export
+```
+
+Export bundles JavaScript and assets for iOS, Android and web. Native compilation,
+live tracking, physical measurements, photo capture and iOS PDF sharing still
+require a development build and physical device. See `TESTING.md` for the original
+AR acceptance checks and `UI_TESTING.md` for redesign checks.
