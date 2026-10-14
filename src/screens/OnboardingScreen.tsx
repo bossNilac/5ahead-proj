@@ -21,14 +21,14 @@ export default function OnboardingScreen({
   const titles = [
     "A better place to start",
     "Position container with AR",
-    "Measure 6 support points",
+    "Measure support points",
     "Ready to be shared",
     "Camera access needed",
   ];
   const descriptions = [
     "Plan your container placement with a guided ground assessment.",
-    "Scan a stable ground surface, then move and rotate the 6 × 3 m container into position.",
-    "Visit all six numbered points. Rest the phone’s bottom edge on the ground and hold it upright and still.",
+    "Scan a stable ground surface, then move and rotate your single or dual container layout into position.",
+    "Visit all six or nine numbered points for your selected layout. Rest the phone’s bottom edge on the ground and hold it upright and still.",
     "Review relative heights, save your project and share a PDF report.",
     "PLCR uses your camera and motion tracking to place a container in your surroundings. Camera access is requested only when you continue.",
   ];

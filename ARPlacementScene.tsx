@@ -218,6 +218,7 @@ export default function ARPlacementScene(props?: Props) {
             position={model.lockedWorldPosition}
             groundY={model.lockedSurface.groundY}
             dimensions={model.dimensions}
+            layout={model.layout}
             rotation={model.objectRotation}
             offset={model.verticalOffset}
             tracking={model.tracking}

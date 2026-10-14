@@ -1,3 +1,4 @@
+import { layoutSpec } from "../layout/layout";
 import { Alert } from "../ui/alerts";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
@@ -9,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import {
   ViroARSceneNavigator,
@@ -47,12 +49,11 @@ export default function ARWorkflow({
   onPhoto,
   t,
 }: ARWorkflowProps) {
-  const [model, reduce] = useReducer(
-    placementReducer,
-    undefined,
-    initialPlacement,
+  const [model, reduce] = useReducer(placementReducer, undefined, () =>
+    initialPlacement(project.layout),
   );
   const assessment = useAssessment(model);
+  const spec = layoutSpec(model.layout);
   const navigator = useRef<ViroARSceneNavigator>(null);
   const previousPose = useRef(model);
   const [ready, setReady] = useState(false);
@@ -63,6 +64,7 @@ export default function ARWorkflow({
   const [photo, setPhoto] = useState(project.photoUri);
   const [photoBusy, setPhotoBusy] = useState(false);
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const dispatch = useCallback((action: PlacementAction) => reduce(action), []);
   useEffect(() => {
     if (unexpectedPoseChange(previousPose.current, model))
@@ -108,6 +110,55 @@ export default function ARWorkflow({
           ? 2
           : 1;
   const normal = model.tracking === "normal";
+  const primaryAction =
+    stage === 1
+      ? {
+          label: t(
+            model.selectedSurface
+              ? "Confirm surface & next"
+              : "Select ground to continue",
+          ),
+          disabled: !canConfirmSurface(model),
+          onPress: () => dispatch({ type: "confirm" }),
+        }
+      : stage === 2
+        ? model.phase === "surface-locked"
+          ? {
+              label: t("Place container"),
+              disabled: !normal,
+              onPress: () => {
+                if (model.selectionPoint)
+                  dispatch({ type: "place", point: model.selectionPoint });
+              },
+            }
+          : {
+              label: t("Lock & measure"),
+              disabled: !normal,
+              onPress: () => dispatch({ type: "lock-placement" }),
+            }
+        : stage === 3
+          ? assessment.interrupted
+            ? {
+                label: t("Restart measurements"),
+                disabled: !normal,
+                onPress: assessment.restart,
+              }
+            : assessment.complete
+              ? {
+                  label: t("Results"),
+                  disabled: false,
+                  onPress: () => setReview(true),
+                }
+              : {
+                  label: `${t("Capture point")} ${assessment.target?.id ?? 1}${(assessment.target?.id ?? 1) < spec.pointCount ? ` · ${t("Next point")}` : ""}`,
+                  disabled: !assessment.canCapture,
+                  onPress: assessment.capture,
+                }
+          : {
+              label: t("Save & view report"),
+              disabled: !assessment.complete,
+              onPress: () => void save(),
+            };
   function exit() {
     Alert.alert(
       "Leave assessment?",
@@ -251,16 +302,30 @@ export default function ARWorkflow({
       ) : (
         <>
           <View style={s.topInfo} pointerEvents="box-none">
-            <View style={s.status}>
-              <View
-                style={[
-                  s.statusDot,
-                  { backgroundColor: normal ? colors.green : colors.red },
-                ]}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={s.status}>
+                <View
+                  style={[
+                    s.statusDot,
+                    { backgroundColor: normal ? colors.green : colors.red },
+                  ]}
+                />
+                <Text style={s.statusText}>
+                  {normal ? "Tracking ready" : "Move slowly · tracking limited"}
+                </Text>
+              </View>
+              <IconButton
+                icon="close"
+                label="Leave assessment"
+                color="#FFFFFF"
+                onPress={exit}
               />
-              <Text style={s.statusText}>
-                {normal ? "Tracking ready" : "Move slowly · tracking limited"}
-              </Text>
             </View>
             {stage === 4 && (
               <View style={s.resultBanner}>
@@ -273,7 +338,7 @@ export default function ARWorkflow({
           >
             <ScrollView
               style={{
-                maxHeight:
+                maxHeight: Math.min(
                   stage === 3
                     ? 260
                     : stage === 2
@@ -281,6 +346,8 @@ export default function ARWorkflow({
                       : stage === 4
                         ? 160
                         : 185,
+                  (screenHeight - insets.top - insets.bottom) * 0.28,
+                ),
               }}
               contentContainerStyle={{ gap: 12 }}
               keyboardShouldPersistTaps="handled"
@@ -329,11 +396,6 @@ export default function ARWorkflow({
                   ) : (
                     <>
                       <Action
-                        label={t("Confirm surface")}
-                        disabled={!canConfirmSurface(model)}
-                        onPress={() => dispatch({ type: "confirm" })}
-                      />
-                      <Action
                         label={t("Choose another")}
                         variant="quiet"
                         onPress={() => dispatch({ type: "choose-another" })}
@@ -346,27 +408,14 @@ export default function ARWorkflow({
                 <>
                   {model.phase === "surface-locked" ? (
                     <>
-                      <Text style={s.title}>Place your 6 × 3 m container</Text>
-                      <Action
-                        label={t("Place container")}
-                        disabled={!normal}
-                        onPress={() => {
-                          if (model.selectionPoint)
-                            dispatch({
-                              type: "place",
-                              point: model.selectionPoint,
-                            });
-                        }}
-                      />
+                      <Text style={s.title}>
+                        Place your {spec.sizeLabel}{" "}
+                        {spec.layout === "dual" ? "containers" : "container"}
+                      </Text>
                     </>
                   ) : (
                     <>
                       <PlacementControls model={model} dispatch={dispatch} />
-                      <Action
-                        label={t("Lock & measure")}
-                        disabled={!normal}
-                        onPress={() => dispatch({ type: "lock-placement" })}
-                      />
                     </>
                   )}
                 </>
@@ -374,44 +423,38 @@ export default function ARWorkflow({
               {stage === 3 && (
                 <>
                   <AssessmentPanel assessment={assessment} />
-                  {assessment.interrupted ? (
-                    <Action
-                      label={t("Restart measurements")}
-                      disabled={!normal}
-                      onPress={assessment.restart}
-                    />
-                  ) : assessment.complete ? (
-                    <Action
-                      label={t("Results")}
-                      icon="next"
-                      onPress={() => setReview(true)}
-                    />
-                  ) : (
-                    <Action
-                      label={`Confirm contact · capture P${assessment.target?.id ?? 1}`}
-                      disabled={!assessment.canCapture}
-                      onPress={assessment.capture}
-                    />
-                  )}
                 </>
               )}
               {stage === 4 && (
                 <>
-                  <Text style={s.title}>6 support points measured</Text>
+                  <Text style={s.title}>
+                    {spec.pointCount} support points measured
+                  </Text>
                   <Text style={s.copy}>
                     Satisfied with this placement? Save it and review your
                     report.
                   </Text>
-                  <Action
-                    label={t("Save & view report")}
-                    variant="green"
-                    icon="check"
-                    busy={busy}
-                    onPress={() => void save()}
-                  />
                 </>
               )}
             </ScrollView>
+            <View style={{ paddingTop: 12, gap: 6 }}>
+              {stage === 3 &&
+                !assessment.complete &&
+                !assessment.interrupted && (
+                  <Text style={s.copy}>
+                    Confirm ground contact to capture this point and advance.
+                    The button enables when all checks pass.
+                  </Text>
+                )}
+              <Action
+                label={primaryAction.label}
+                icon="next"
+                variant={stage === 4 ? "green" : "blue"}
+                busy={busy}
+                disabled={primaryAction.disabled}
+                onPress={primaryAction.onPress}
+              />
+            </View>
             <View style={s.toolbar}>
               <IconButton
                 icon="back"
@@ -464,10 +507,11 @@ export default function ARWorkflow({
                 />
               )}
               <IconButton
-                icon="close"
-                label="Leave assessment"
+                icon="next"
+                label={primaryAction.label}
                 color="#FFFFFF"
-                onPress={exit}
+                disabled={primaryAction.disabled || busy}
+                onPress={primaryAction.onPress}
               />
             </View>
           </View>
@@ -479,7 +523,11 @@ export default function ARWorkflow({
         onClose={() => setDetails(false)}
         palette={palettes.night}
       >
-        <SupportDiagram values={assessment.results} dark />
+        <SupportDiagram
+          values={assessment.results}
+          layout={model.layout}
+          dark
+        />
         {assessment.results.map((r) => (
           <View key={r.id} style={s.detail}>
             <Text style={s.title}>

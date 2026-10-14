@@ -1,5 +1,9 @@
 // Navigation and primary workflow labels follow the selected UI language.
 const nl: Record<string, string> = {
+  "Two containers side by side": "Twee containers naast elkaar",
+  "Two containers": "Twee containers",
+  "Single container": "Enkele container",
+  "Measure support points": "Meet steunpunten",
   "New project": "Nieuw project",
   History: "Geschiedenis",
   Settings: "Instellingen",
@@ -54,6 +58,10 @@ const nl: Record<string, string> = {
   Measure: "Meten",
   Manual: "Handmatig",
   Auto: "Automatisch",
+  "Confirm surface & next": "Ondergrond bevestigen en doorgaan",
+  "Select ground to continue": "Selecteer grond om door te gaan",
+  "Capture point": "Punt vastleggen",
+  "Next point": "Volgend punt",
   "Confirm surface": "Ondergrond bevestigen",
   "Choose another": "Opnieuw kiezen",
   "Place container": "Container plaatsen",

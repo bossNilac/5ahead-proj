@@ -61,3 +61,17 @@ phone ground-contact capture, actual safe areas, AR photos and the native share 
 The critical shell-quote transitive advisory was fixed. npm still reports moderate
 and high advisories in the Expo/React Native/tooling dependency tree. Dependency
 versions were kept compatible with SDK 57; no forced framework upgrade was applied.
+
+## Dual layout feature
+
+- Toggle Two containers side by side before starting a project. Verify the popup
+  shows 6 × 6 m / nine points; switching off restores 6 × 3 m / six points.
+- Verify the choice persists in drafts/history across app restarts. Old projects
+  without the new field must still open with six points.
+- On a physical iPhone, place the dual footprint. Check two adjoining containers
+  and three unique numbered long support lines (1–3, shared 4–6, outer 7–9).
+- Move/rotate, rescan and restart tracking; the selected layout must stay dual.
+- Capture all nine points. Six captures must not complete a dual project. Capture
+  nine must enable results; editing or restarting measurements must clear them.
+- Reopen the saved report and export it. Verify the square diagram, shared seam,
+  nine table entries, real heights and summary computed from all nine points.

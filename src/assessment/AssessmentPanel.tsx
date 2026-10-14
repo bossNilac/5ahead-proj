@@ -18,8 +18,8 @@ export default function AssessmentPanel({
     <View style={s.panel} accessibilityLiveRegion="polite">
       <Text style={s.title}>
         {a.complete
-          ? "All 6 points captured"
-          : `Support point ${a.target?.id ?? 1} / 6`}
+          ? `All ${a.points.length} points captured`
+          : `Support point ${a.target?.id ?? 1} / ${a.points.length}`}
       </Text>
       {!a.complete && (
         <>

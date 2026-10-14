@@ -1,3 +1,4 @@
+import { type Layout } from "./src/layout/layout";
 import { memo, useRef } from "react";
 import {
   ViroMaterials,
@@ -64,6 +65,7 @@ type Props = {
   position: Vector3;
   groundY: number;
   dimensions: Dimensions;
+  layout: Layout;
   rotation: number;
   offset: number;
   tracking: TrackingQuality;
@@ -81,6 +83,7 @@ export default memo(function FrozenPlacement({
   position,
   groundY,
   dimensions,
+  layout,
   rotation,
   offset,
   tracking,
@@ -157,6 +160,28 @@ export default memo(function FrozenPlacement({
         ignoreEventHandling
       />
       <ViroNode ignoreEventHandling>
+        {layout === "dual" && (
+          <>
+            <ViroPolyline
+              thickness={0.012}
+              materials={["containerWire"]}
+              points={[
+                [0, 0, -d],
+                [0, dimensions.height, -d],
+                [0, dimensions.height, d],
+                [0, 0, d],
+              ]}
+            />
+            <ViroPolyline
+              thickness={0.01}
+              materials={["edge"]}
+              points={[
+                [0, 0, -d],
+                [0, 0, d],
+              ]}
+            />
+          </>
+        )}
         <ViroPolyline
           thickness={0.012}
           materials={["containerWire"]}
@@ -217,7 +242,7 @@ export default memo(function FrozenPlacement({
           [-w, 0, -d],
         ]}
       />
-      {supportPoints([0, 0, 0], 0).map((p) => (
+      {supportPoints([0, 0, 0], 0, layout).map((p) => (
         <ViroNode key={p.id} position={p.position} ignoreEventHandling>
           <ViroQuad
             ignoreEventHandling

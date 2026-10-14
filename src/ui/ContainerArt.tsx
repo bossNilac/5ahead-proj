@@ -1,3 +1,4 @@
+import { diagramGeometry, layoutSpec, type Layout } from "../layout/layout";
 import Svg, {
   Circle,
   Defs,
@@ -74,42 +75,48 @@ export function ContainerArt() {
 export function SupportDiagram({
   values,
   dark = false,
+  layout = "single",
 }: {
   values?: { id: number; relativeHeightCm: number }[];
   dark?: boolean;
+  layout?: Layout;
 }) {
   const ink = dark ? "#FFFFFF" : colors.ink;
-  // Displayed order agrees with the existing supportPoints geometry.
-  const positions = [
-    [60, 50],
-    [180, 50],
-    [300, 50],
-    [60, 180],
-    [180, 180],
-    [300, 180],
-  ];
+  const geometry = diagramGeometry(layout);
+  const positions = geometry.points;
   return (
-    <View style={{ width: "100%", aspectRatio: 360 / 225 }}>
-      <Svg width="100%" height="100%" viewBox="0 0 360 225">
+    <View style={{ width: "100%", aspectRatio: 360 / geometry.viewHeight }}>
+      <Svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 360 ${geometry.viewHeight}`}
+      >
         <Path
-          d="M60 50h240v130H60Z"
+          d={`M${geometry.left} ${geometry.top}h${geometry.width}v${geometry.height}h-${geometry.width}Z`}
           stroke={dark ? "#9AA3AB" : "#76818A"}
           strokeWidth={1.5}
           fill="none"
         />
+        {layout === "dual" && (
+          <Path
+            d={`M${geometry.left} ${geometry.top + geometry.height / 2}h${geometry.width}`}
+            stroke={dark ? "#9AA3AB" : "#76818A"}
+            strokeDasharray="4 3"
+          />
+        )}
         <SvgText
           fontFamily="Arial"
           x={180}
-          y={117}
+          y={geometry.labelY}
           textAnchor="middle"
           fill={ink}
           fontSize={15}
           fontWeight="600"
         >
-          6 m × 3 m
+          {layoutSpec(layout).sizeLabel}
         </SvgText>
-        {positions.map(([x, y], i) => {
-          const r = values?.find((v) => v.id === i + 1);
+        {positions.map(({ x, y, id, labelY }) => {
+          const r = values?.find((v) => v.id === id);
           const color = r
             ? Math.abs(r.relativeHeightCm) > 5
               ? colors.red
@@ -117,20 +124,20 @@ export function SupportDiagram({
                 ? colors.orange
                 : colors.green
             : "#8797A3";
-          return <Circle key={`c${i}`} cx={x} cy={y} r={7} fill={color} />;
+          return <Circle key={`c${id}`} cx={x} cy={y} r={7} fill={color} />;
         })}
-        {positions.map(([x, y], i) => {
-          const r = values?.find((v) => v.id === i + 1);
+        {positions.map(({ x, y, id, labelY }) => {
+          const r = values?.find((v) => v.id === id);
           return (
             <SvgText
               fontFamily="Arial"
-              key={i}
+              key={id}
               x={x}
-              y={y < 100 ? 32 : 206}
+              y={labelY}
               fill={ink}
               fontSize={12}
               textAnchor="middle"
-            >{`P${i + 1}${r ? ` · ${r.relativeHeightCm.toFixed(1)} cm` : ""}`}</SvgText>
+            >{`P${id}${r ? ` · ${r.relativeHeightCm.toFixed(1)} cm` : ""}`}</SvgText>
           );
         })}
       </Svg>

@@ -1,8 +1,10 @@
+import { layoutSpec, diagramGeometry, type Layout } from "../layout/layout";
 import type { ContactCapture, contactResult } from "../assessment/measurement";
 import type { Vector3 } from "../../types";
 export type Measurement = ReturnType<typeof contactResult>;
 export type Project = {
   id: string;
+  layout: Layout;
   name: string;
   location: string;
   notes: string;
@@ -39,9 +41,11 @@ export function createProject(
   location: string,
   notes: string,
   now = Date.now(),
+  layout: Layout = "single",
 ): Project {
   return {
     id: `${now}-${Math.random().toString(36).slice(2, 10)}`,
+    layout,
     name: name.trim(),
     location: location.trim(),
     notes: notes.trim(),
@@ -71,17 +75,11 @@ const escapeHtml = (s: string) =>
   );
 export function reportHtml(project: Project, profile: Profile) {
   const stats = summary(project.measurements);
-  const coordinates = [
-    [60, 45],
-    [180, 45],
-    [300, 45],
-    [60, 175],
-    [180, 175],
-    [300, 175],
-  ];
-  const diagram = `<svg viewBox="0 0 360 220" style="width:100%;max-height:220px" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="45" width="240" height="130" stroke="#76818a" fill="none"/><text x="180" y="116" text-anchor="middle" font-family="Helvetica" font-size="15">6 m × 3 m</text>${coordinates
-    .map(([x, y], i) => {
-      const r = project.measurements.find((r) => r.id === i + 1);
+  const spec = layoutSpec(project.layout);
+  const geometry = diagramGeometry(project.layout);
+  const diagram = `<svg viewBox="0 0 360 ${geometry.viewHeight}" style="width:100%;max-height:300px" xmlns="http://www.w3.org/2000/svg"><rect x="${geometry.left}" y="${geometry.top}" width="${geometry.width}" height="${geometry.height}" stroke="#76818a" fill="none"/>${project.layout === "dual" ? `<path d="M${geometry.left} ${geometry.top + geometry.height / 2}h${geometry.width}" stroke="#76818a" stroke-dasharray="4 3" fill="none"/>` : ""}<text x="180" y="${geometry.labelY}" text-anchor="middle" font-family="Helvetica" font-size="15">${spec.sizeLabel}</text>${geometry.points
+    .map(({ x, y, labelY, id }) => {
+      const r = project.measurements.find((r) => r.id === id);
       const height = r?.relativeHeightCm ?? 0;
       const color =
         Math.abs(height) > 5
@@ -89,10 +87,10 @@ export function reportHtml(project: Project, profile: Profile) {
           : Math.abs(height) > 2
             ? "#EC8900"
             : "#88B64A";
-      return `<circle cx="${x}" cy="${y}" r="6" fill="${color}"/><text x="${x}" y="${y < 100 ? 27 : 202}" text-anchor="middle" font-family="Helvetica" font-size="11">P${i + 1} · ${height.toFixed(1)} cm</text>`;
+      return `<circle cx="${x}" cy="${y}" r="6" fill="${color}"/><text x="${x}" y="${labelY}" text-anchor="middle" font-family="Helvetica" font-size="11">P${id} · ${height.toFixed(1)} cm</text>`;
     })
     .join("")}</svg>`;
-  return `<!doctype html><html><head><title>PLCR · ${escapeHtml(project.name)}</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:Helvetica,Arial,sans-serif;color:#20282e;padding:32px}header{background:#ec8900;padding:20px;border-radius:12px}h1{letter-spacing:4px}h2{margin-top:28px}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;border-bottom:1px solid #d4d9dc}.note{font-size:12px;color:#56626b;line-height:1.6}.summary{background:#edf2f5;padding:16px;border-radius:12px}</style></head><body><header><h1>PLCR</h1><strong>Container ground assessment</strong></header><h2>${escapeHtml(project.name)}</h2><p>${escapeHtml(project.location)} · ${new Date(project.updatedAt).toISOString().slice(0, 10)}</p><p>${escapeHtml(profile.name)} ${escapeHtml(profile.company)}</p><p>${escapeHtml(project.notes)}</p><h2>Container position</h2>${diagram}<h2>Height measurement · 6 m × 3 m</h2><table><tr><th>Point</th><th>Relative height</th><th>Spread</th><th>Estimated contact XYZ (cm)</th></tr>${project.measurements.map((r) => `<tr><td>P${r.id}</td><td>${r.relativeHeightCm.toFixed(1)} cm</td><td>${r.spreadCm.toFixed(1)} cm</td><td>${r.estimatedPosition.map((v) => (v * 100).toFixed(1)).join(" / ")}</td></tr>`).join("")}</table><h2>Summary</h2><div class="summary">Maximum: ${stats.max.toFixed(1)} cm · Minimum: ${stats.min.toFixed(1)} cm · Height difference: ${stats.range.toFixed(1)} cm</div><p class="note">Point 1 is the reference height. These are relative local AR estimates, not surveyed elevations. Camera X/Z approximate contact location; the camera-to-edge offset is not calibrated. Capture conditions do not certify measurement accuracy or site suitability. Review with a qualified professional before installation.</p></body></html>`;
+  return `<!doctype html><html><head><title>PLCR · ${escapeHtml(project.name)}</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:Helvetica,Arial,sans-serif;color:#20282e;padding:32px}header{background:#ec8900;padding:20px;border-radius:12px}h1{letter-spacing:4px}h2{margin-top:28px}table{width:100%;border-collapse:collapse}th,td{padding:10px;text-align:left;border-bottom:1px solid #d4d9dc}.note{font-size:12px;color:#56626b;line-height:1.6}.summary{background:#edf2f5;padding:16px;border-radius:12px}</style></head><body><header><h1>PLCR</h1><strong>Container ground assessment</strong></header><h2>${escapeHtml(project.name)}</h2><p>${escapeHtml(project.location)} · ${new Date(project.updatedAt).toISOString().slice(0, 10)}</p><p>${escapeHtml(profile.name)} ${escapeHtml(profile.company)}</p><p>${escapeHtml(project.notes)}</p><p>${spec.label} · ${spec.pointCount} support points</p><h2>Container position</h2>${diagram}<h2>Height measurement · ${spec.sizeLabel}</h2><table><tr><th>Point</th><th>Relative height</th><th>Spread</th><th>Estimated contact XYZ (cm)</th></tr>${project.measurements.map((r) => `<tr><td>P${r.id}</td><td>${r.relativeHeightCm.toFixed(1)} cm</td><td>${r.spreadCm.toFixed(1)} cm</td><td>${r.estimatedPosition.map((v) => (v * 100).toFixed(1)).join(" / ")}</td></tr>`).join("")}</table><h2>Summary</h2><div class="summary">Maximum: ${stats.max.toFixed(1)} cm · Minimum: ${stats.min.toFixed(1)} cm · Height difference: ${stats.range.toFixed(1)} cm</div><p class="note">Point 1 is the reference height. These are relative local AR estimates, not surveyed elevations. Camera X/Z approximate contact location; the camera-to-edge offset is not calibrated. Capture conditions do not certify measurement accuracy or site suitability. Review with a qualified professional before installation.</p></body></html>`;
 }
 // Validate persisted records before any screen or report uses their coordinates.
 export function parseData(raw: string | null): AppData {
@@ -122,6 +120,11 @@ export function parseData(raw: string | null): AppData {
     if (!p || projectIds.has(p.id))
       throw new Error("Saved project IDs are invalid.");
     projectIds.add(p.id);
+    // Legacy v1 projects predate the selector and always use the single layout.
+    if (p.layout === undefined) p.layout = "single";
+    if (!["single", "dual"].includes(p.layout))
+      throw new Error("Saved layout is invalid.");
+    const pointCount = layoutSpec(p.layout).pointCount;
     if (
       typeof p.id !== "string" ||
       typeof p.name !== "string" ||
@@ -148,7 +151,7 @@ export function parseData(raw: string | null): AppData {
         !c ||
         !Number.isInteger(c.id) ||
         c.id < 1 ||
-        c.id > 6 ||
+        c.id > pointCount ||
         captureIds.has(c.id) ||
         !Number.isFinite(c.timestamp) ||
         !Number.isFinite(c.spreadCm) ||
@@ -164,7 +167,7 @@ export function parseData(raw: string | null): AppData {
         !r ||
         !Number.isInteger(r.id) ||
         r.id < 1 ||
-        r.id > 6 ||
+        r.id > pointCount ||
         ids.has(r.id) ||
         !Number.isFinite(r.relativeHeightCm) ||
         !Number.isFinite(r.spreadCm) ||
@@ -177,7 +180,7 @@ export function parseData(raw: string | null): AppData {
         throw new Error("Saved measurement is invalid.");
       ids.add(r.id);
     }
-    if (p.status === "completed" && p.measurements.length !== 6)
+    if (p.status === "completed" && p.measurements.length !== pointCount)
       throw new Error("Completed project is missing measurements.");
   }
   return d as AppData;

@@ -1,3 +1,4 @@
+import { layoutSpec } from "./src/layout/layout";
 import { Alert } from "./src/ui/alerts";
 import { useEffect, useState } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  Switch,
   View,
 } from "react-native";
 import {
@@ -74,6 +76,7 @@ function PLCR() {
     name: "",
     location: "",
     notes: "",
+    dual: false,
   });
   const [profileForm, setProfileForm] = useState<Profile>(data.profile);
   const palette = palettes[data.preferences.theme];
@@ -118,7 +121,7 @@ function PLCR() {
     setMenu(null);
   }
   function newProject() {
-    setProjectForm({ name: "", location: "", notes: "" });
+    setProjectForm({ name: "", location: "", notes: "", dual: false });
     setMenu(null);
     setDialog("new");
   }
@@ -172,6 +175,8 @@ function PLCR() {
       projectForm.name,
       projectForm.location,
       projectForm.notes,
+      Date.now(),
+      projectForm.dual ? "dual" : "single",
     );
     void perform(
       () =>
@@ -474,6 +479,27 @@ function PLCR() {
                 palette={palette}
                 placeholder="Construction A"
               />
+              <View style={[s.dimension, { backgroundColor: palette.surface }]}>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Text style={{ color: palette.text, fontWeight: "600" }}>
+                    {t("Two containers side by side")}
+                  </Text>
+                  <Text style={{ color: palette.muted, fontSize: 12 }}>
+                    {projectForm.dual
+                      ? "6 × 6 m · 9 support points"
+                      : "6 × 3 m · 6 support points"}
+                  </Text>
+                </View>
+                <Switch
+                  accessibilityLabel={t("Two containers side by side")}
+                  value={projectForm.dual}
+                  onValueChange={(dual) =>
+                    setProjectForm((p) => ({ ...p, dual }))
+                  }
+                  trackColor={{ false: palette.line, true: colors.blue }}
+                  thumbColor={colors.white}
+                />
+              </View>
               <Field
                 label={t("Location")}
                 value={projectForm.location}
@@ -493,8 +519,13 @@ function PLCR() {
               <View style={[s.dimension, { backgroundColor: palette.surface }]}>
                 <Icon name="info" color={colors.orange} />
                 <Text style={{ color: palette.text, fontSize: 13, flex: 1 }}>
-                  Standard container · 6 m × 3 m{"\n"}Six support points · local
-                  AR measurement
+                  {t(layoutSpec(projectForm.dual ? "dual" : "single").label)} ·{" "}
+                  {layoutSpec(projectForm.dual ? "dual" : "single").sizeLabel}
+                  {"\n"}
+                  {
+                    layoutSpec(projectForm.dual ? "dual" : "single").pointCount
+                  }{" "}
+                  support points · local AR measurement
                 </Text>
               </View>
               <Action
@@ -617,9 +648,10 @@ function PLCR() {
                 Plan. Place. Measure.
               </Text>
               <Copy palette={palette}>
-                PLCR helps you position a standard 6 × 3 m container and compare
-                ground heights at six support points. Camera and motion tracking
-                guide you through each measurement.
+                PLCR helps you position one container (6 × 3 m, six points) or
+                two side by side (6 × 6 m, nine points) and compare ground
+                heights. Camera and motion tracking guide you through each
+                measurement.
               </Copy>
               <Copy palette={palette}>
                 This testing version reports relative AR estimates. A qualified

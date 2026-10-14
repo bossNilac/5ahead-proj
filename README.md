@@ -1,7 +1,7 @@
 # PLCR
 
-A React Native + Expo SDK 57 app for positioning a standard **6 × 3 m** container
-and measuring relative ground heights at six support points. The interface follows
+A React Native + Expo SDK 57 app for positioning one **6 × 3 m** container (six
+support points) or two side by side in a **6 × 6 m** layout (nine support points). The interface follows
 the 17 references in `lo-fi/`: orange headers and menus, charcoal backgrounds,
 deep blue actions, green capture feedback, and white measurement reports.
 
@@ -46,7 +46,8 @@ A browser-created draft opens an explanation of how to continue on the phone.
 
 1. Follow or skip the onboarding tutorial. Camera permission is requested on
    demand, either at the tutorial's final screen or when opening AR.
-2. Create a named project, with optional location and notes. The draft is saved
+2. Create a named project, select the **Two containers side by side** switch for
+   the dual layout, and optionally add location and notes. The draft is saved
    locally before starting the camera.
 3. **Scan ground:** slowly scan textured ground in good lighting. Select a stable
    automatic surface or choose Manual and tap an approximate ground hit. Confirm
@@ -54,7 +55,7 @@ A browser-created draft opens an explanation of how to continue on the phone.
 4. **Position:** place, drag, move and rotate the container. Controls offer 1 cm
    and 10 cm steps, ±5° rotation and rotation reset. The wireframe volume is a
    visual aid; the contact footprint remains on the confirmed ground plane.
-5. **Measure:** lock the placement, then visit points 1–6 in order. Rest the center
+5. **Measure:** lock the placement, then visit points 1–6 or 1–9 in order for your selected layout. Rest the center
    of the phone's bottom edge on the ground, upright in portrait, with the camera
    uncovered. Use the same phone/case at every point. Hold still for two seconds
    and explicitly confirm ground contact to capture. Interrupted tracking requires
@@ -117,3 +118,16 @@ Export bundles JavaScript and assets for iOS, Android and web. Native compilatio
 live tracking, physical measurements, photo capture and iOS PDF sharing still
 require a development build and physical device. See `TESTING.md` for the original
 AR acceptance checks and `UI_TESTING.md` for redesign checks.
+
+## Dual layout
+
+The project layout is saved with the draft and cannot change during measurement.
+The 6 × 6 m footprint contains two adjoining 6 × 3 m containers. Points 1–3 run
+end–midpoint–end along the first outer long edge, 4–6 along the shared seam, and
+7–9 along the opposite outer edge. Shared points are measured once. Reports, PDF
+diagrams, height tables and summaries use all nine captures. Existing projects
+without a layout field are read as the original single layout.
+
+This is a JavaScript-only feature; it adds no native dependencies. Physical-device
+acceptance should verify all nine numbered markers, movement/rotation, capture
+order, reset behavior and native PDF sharing.

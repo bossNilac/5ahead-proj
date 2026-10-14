@@ -1,6 +1,6 @@
 import type { PlacementAction, PlacementModel, Surface, Vector3 } from './types';
 import { enforceContactPosition } from './placementGeometry';
-import { CONTAINER } from './src/assessment/measurement';
+import { layoutSpec, type Layout } from './src/layout/layout';
 
 export const MIN_PLANE_SIZE = 0.5;
 export const PLANE_SETTLE_MS = 1500;
@@ -18,10 +18,10 @@ function candidateReady(p: PlacementModel['detectedPlanes'][string], now: number
     && (p.anchor.width ?? 0) >= MIN_PLANE_SIZE && (p.anchor.height ?? 0) >= MIN_PLANE_SIZE;
 }
 const finitePoint = (point: Vector3) => point.length === 3 && point.every(Number.isFinite);
-export function initialPlacement(): PlacementModel {
-  return { phase: 'scanning', mode: 'detected', detectedPlanes: {}, selectedSurface: null, lockedSurface: null,
+export function initialPlacement(layout:Layout = 'single'): PlacementModel {
+  return { layout, phase: 'scanning', mode: 'detected', detectedPlanes: {}, selectedSurface: null, lockedSurface: null,
     selectionPoint: null, lockedWorldPosition: null, poseRevision: 0, assessmentLocked:false, objectRotation: 0, verticalOffset: 0,
-    dimensions: CONTAINER, tracking: 'initializing', camera: null,
+    dimensions: layoutSpec(layout).dimensions, tracking: 'initializing', camera: null,
     manualRequest: null, manualGeneration: 0, manualError: null };
 }
 function clearSelection(s: PlacementModel): PlacementModel {
@@ -146,10 +146,10 @@ function reducePlacement(s: PlacementModel, action: PlacementAction): PlacementM
       return { ...s, objectRotation: ((s.objectRotation + action.delta) % 360 + 360) % 360 };
     case 'reset-rotation': return { ...s, objectRotation: 0 };
     case 'dimensions':
-      // One standard container, including programmatic requests.
+      // Project layout fixes the dimensions; arbitrary resizing is not supported.
       return s;
     case 'reposition': return s.lockedSurface ? { ...s, phase: 'surface-locked' } : s;
     case 'reset': return { ...clearSelection(s), mode: 'detected' };
-    case 'restart-tracking': return { ...initialPlacement(), dimensions:s.dimensions, manualGeneration:s.manualGeneration + 1 };
+    case 'restart-tracking': return { ...initialPlacement(s.layout), dimensions:s.dimensions, manualGeneration:s.manualGeneration + 1 };
   }
 }

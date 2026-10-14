@@ -32,6 +32,7 @@ export type PlaneRecord = {
   selectable: boolean;
 };
 export type PlacementModel = {
+  layout: import("./src/layout/layout").Layout;
   phase: PlacementState;
   mode: "detected" | "manual";
   detectedPlanes: Record<string, PlaneRecord>;

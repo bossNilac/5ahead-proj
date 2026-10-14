@@ -1,3 +1,4 @@
+import { layoutSpec } from "../layout/layout";
 import { Alert } from "../ui/alerts";
 import { useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -49,7 +50,14 @@ export default function ReportScreen({
         </View>
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t("Container position")}</Text>
-          <SupportDiagram values={project.measurements} />
+          <Text style={s.note}>
+            {t(layoutSpec(project.layout).label)} ·{" "}
+            {layoutSpec(project.layout).pointCount} support points
+          </Text>
+          <SupportDiagram
+            values={project.measurements}
+            layout={project.layout}
+          />
           <Text style={s.note}>
             Colors show relative height: green ≤2 cm, orange ≤5 cm, red &gt;5
             cm. They do not indicate site suitability.

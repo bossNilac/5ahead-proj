@@ -1,3 +1,4 @@
+import { layoutSpec } from "../layout/layout";
 import { useState } from "react";
 import {
   Image,
@@ -143,6 +144,8 @@ export default function HistoryScreen({
                     {p.location || "Local AR assessment"}
                   </Text>
                   <Text style={s.date}>
+                    {layoutSpec(p.layout).sizeLabel} ·{" "}
+                    {layoutSpec(p.layout).pointCount} pts{"\n"}
                     {new Date(p.updatedAt).toLocaleDateString()} ·{" "}
                     {t(p.status === "completed" ? "Completed" : "Draft")}
                   </Text>
