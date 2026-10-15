@@ -12,7 +12,7 @@ for arg in "$@"; do
       printf '%s\n' 'Usage: bash run.sh [--build] [--tunnel]' \
         '  --build   Configure and build the iPhone development app using EAS.' \
         '  --tunnel  Use an Expo tunnel instead of the same Wi-Fi network.' \
-        'Requires Node.js/npm; on Windows run in Git Bash.' \
+        'Requires Node.js/npm; on Windows use run.bat.' \
         'Expo Go cannot run Viro. Install the development build first.'
       exit 0 ;;
     *) printf 'Unknown option: %s\n' "$arg" >&2; exit 1 ;;
@@ -37,6 +37,7 @@ if "$build"; then
     'A paid Apple Developer membership is required for this EAS device build.' \
     'Use your own ios.bundleIdentifier in app.json before building.'
   npx --yes eas-cli@latest whoami || npx --yes eas-cli@latest login
+  npx --yes eas-cli@latest init
   npx --yes eas-cli@latest build:configure --platform ios
   npx --yes eas-cli@latest device:create
   npx --yes eas-cli@latest build --platform ios --profile development --wait

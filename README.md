@@ -1,112 +1,102 @@
 # PLCR
 
-A React Native + Expo SDK 57 app for positioning one **6 × 3 m** container (six
-support points) or two side by side in a **6 × 6 m** layout (nine support points). The interface follows
-the 17 references in `lo-fi/`: orange headers and menus, charcoal backgrounds,
-deep blue actions, green capture feedback, and white measurement reports.
+PLCR helps position containers in augmented reality and record relative ground heights at their support points. It supports one **6 × 3 m container with six points**, or two adjoining containers in a **6 × 6 m layout with nine points**.
 
-## Run
+**The full app works on physical ARKit-capable iPhones only.** Android and iOS Simulator are not supported targets for this handover. Windows, macOS and Linux can all host the development server or run the browser preview. The browser previews the interface and local project management; it cannot perform AR measurements.
 
-Requires **Node.js 22.13+**, npm, and a physical ARKit-capable iPhone.
-Viro requires a development build; **Expo Go cannot run this app**.
+The functional app has been tested on an iPhone. The project team also collected 35 test measurements, already known to the company. Final UI changes await the company's designs. See [the technical report](TECHNICAL_REPORT.md) for implementation details and [the testing guide](TESTING.md) for checks after changes.
 
-```sh
-./run.sh
-# First-time setup, or after adding native dependencies:
-./run.sh --build
-# If the phone and computer cannot use the same Wi-Fi:
-./run.sh --tunnel
-```
+## Requirements
 
-`run.sh` mirrors `run.bat` on Windows: install locked dependencies, check
-TypeScript, run tests, optionally configure/register/build an iPhone development
-app through EAS, and start Metro in development-client mode. EAS device builds
-require Expo login and Apple Developer Program membership. Install the resulting
-build, enable iOS Developer Mode if prompted, and scan Metro's QR code.
+- Git and Node.js **22.13 or newer**, including npm. Node 22 is the recommended baseline for this repository. Check with `node --version` and `npm --version`.
+- A terminal: PowerShell/Command Prompt on Windows, Terminal on macOS, or a Linux shell.
+- For AR: a physical ARKit-capable iPhone on iOS **16.4 or newer**, camera access, and a PLCR development build. The project targeted a non-LiDAR iPhone 15; LiDAR is not required.
+- For the cloud iPhone build: the **company's own Expo account/EAS project and paid Apple Developer Program membership**, with access to signing credentials and device registration. An Apple Developer account is not needed for the browser preview.
 
-**This redesign adds native modules for storage, safe areas, SVG, PDF generation,
-and sharing. Install a fresh development build before testing on your phone.**
-The bundle identifier, EAS project ID, and existing Viro patch are preserved.
-The app's display name is now PLCR.
+Viro uses native code, so **Expo Go cannot run PLCR**. SDK requirements are documented in the [Expo SDK 57 reference](https://docs.expo.dev/versions/v57.0.0/).
 
-On macOS, local builds can use `npx expo run:ios --device`. On Linux/Windows, use
-the EAS cloud build in `run.sh --build` / `run.bat --build`.
+## Get the source
 
-A browser preview supports onboarding, preferences, profile, history and reports:
+Clone the company repository using the URL supplied by the supervisor, then open a terminal in its root (the folder containing `package.json`). All commands below run from that folder. No backend, database service, API key or `.env` file is required.
+
+## Browser preview on any operating system
 
 ```sh
 npm ci
 npm run web
 ```
 
-AR itself requires the iPhone app. Browser storage and phone storage are separate.
-A browser-created draft opens an explanation of how to continue on the phone.
+Open the local URL printed by Expo, or press `w` in the terminal. Stop the server with Ctrl+C.
 
-## Workflow
+You can review onboarding, settings, profile, new-project forms and history. Starting a project shows the explanation that AR requires an iPhone. Completed reports can be viewed when completed project data exists in that browser; phone data is not synchronised to the browser. Browser export uses a print window and the browser's save-as-PDF feature.
 
-1. Follow or skip the onboarding tutorial. Camera permission is requested on
-   demand, either at the tutorial's final screen or when opening AR.
-2. Create a named project, select the **Two containers side by side** switch for
-   the dual layout, and optionally add location and notes. The draft is saved
-   locally before starting the camera.
-3. **Scan ground:** slowly scan textured ground in good lighting. Select a stable
-   automatic surface or choose Manual and tap an approximate ground hit. Confirm
-   the intended surface to freeze its height.
-4. **Position:** place, drag, move and rotate the container. Controls offer 1 cm
-   and 10 cm steps, ±5° rotation and rotation reset. The wireframe volume is a
-   visual aid; the contact footprint remains on the confirmed ground plane.
-5. **Measure:** lock the placement, then visit points 1–6 or 1–9 in order for your selected layout. Rest the center
-   of the phone's bottom edge on the ground, upright in portrait, with the camera
-   uncovered. Use the same phone/case at every point. Hold still for two seconds
-   and explicitly confirm ground contact to capture. Interrupted tracking requires
-   restarting all measurements before proceeding.
-6. **Results:** inspect capture details, remeasure if needed, then save and review
-   the completed report. Export & share generates a PDF and opens the native share
-   sheet; the browser uses its print dialog.
-7. History supports searching, favorites, opening reports, continuing drafts with
-   a fresh AR scan, and deleting projects. Completed measurements survive restarts.
+## First iPhone build: company setup
 
-Settings persist day/night theme and English/Dutch navigation and control labels.
-Technical guidance and PDF reports remain English. Account provides a local,
-optional name/email/company profile used in reports, plus privacy information.
-Contact opens the repository's real issue tracker.
+Do this once for the company, before using `--build`:
 
-## Data and accuracy
+1. In `app.json`, replace `expo.ios.bundleIdentifier` (`com.example.plcr`) with a unique company-controlled identifier, such as `com.yourcompany.plcr`. The supplied value is a placeholder.
+2. Optionally set `expo.extra.supportUrl` to the company's HTTPS support page or issue tracker. With the default empty value, Contact directs users to their company supervisor.
+3. Use the company's Expo account and Apple Developer team during the prompts below. The previous developer's EAS project link and personal bundle identifier have been removed. Do not reuse their accounts or credentials.
 
-There is no server or authentication service in this repository. Projects,
-preferences, profile, captures and optional AR photos are stored on the device.
-Storage writes are queued and awaited; failures are surfaced without claiming a
-successful save. Invalid saved data is reported rather than silently overwritten.
-No sample projects or invented measurement values appear in the shipped UI.
+On **Windows**, in PowerShell:
 
-AR world coordinates are **metres** internally and **centimetres** in reports.
-Point 1 establishes the height reference. The same upright phone/case at every
-point lets its unknown camera-to-bottom vertical offset cancel in the difference.
-Camera X/Z approximate horizontal contact location; that offset is not calibrated.
-These are local relative estimates, not geographic coordinates or surveyed
-heights. Capture conditions do not certify accuracy or installation suitability.
+```powershell
+.\run.bat --build
+```
 
-Captures still require normal tracking, proximity within 30 cm, tilt ≤10°, a
-continuous two-second hold with ≤1.5 cm movement spread, fresh camera data and no
-long sample gaps. The app cannot sense physical ground contact. Report colors
-show absolute relative height (green ≤2 cm, orange ≤5 cm, red >5 cm), **not** a
-validated ground suitability classification.
+On **macOS or Linux**:
 
-Saved AR coordinates cannot be restored into a new camera session. Drafts restart
-scanning; completed projects reopen their reports. Rescanning during an active
-assessment resets application state without remounting the AR navigator.
+```sh
+bash run.sh --build
+```
 
-## Architecture and checks
+The script installs locked dependencies, applies the committed Viro patch, checks TypeScript and runs tests. It then signs into Expo if needed, initialises/links the company's EAS project, configures an iOS build, registers the phone and requests an internal development build. If already logged in, verify the displayed account is the company's; use `npx --yes eas-cli@latest logout` and `login` to switch if necessary. Select the company account/organisation when linking the project.
 
-- `App.tsx`: application navigation, orange menus, profile and project forms.
-- `src/ui/`: shared controls, safe-area layout, icons, vector container artwork,
-  theme and navigation translations.
-- `src/screens/`: onboarding, project history, report, and AR workflow.
-- `src/projects/`: typed local data, validated persistence, report summary and PDF.
-- `placementState.ts` / `placementGeometry.ts`: existing immutable placement logic.
-- `ARPlacementScene.tsx` / `ARViewport.tsx` / `FrozenPlacement.tsx`: native AR scene,
-  stable Gravity-aligned navigator, volume and numbered contact markers.
-- `src/assessment/`: existing quality gates, capture and relative-height logic.
+EAS writes the new project ID into `app.json`. Keep the company's resulting configuration for subsequent builds. Apple signing/device-registration prompts require someone with the appropriate team permissions. Cloud builds work from all three desktop operating systems; Xcode is not required for this route.
+
+Install the finished build using the EAS link on the registered iPhone. Enable Developer Mode if iOS requests it. Keep the terminal running, then scan the Metro QR code with the iPhone camera and open it in PLCR. You may also open PLCR's development launcher and connect to the server there. Installation/signing details are covered in Expo's [internal distribution guide](https://docs.expo.dev/build/internal-distribution/).
+
+Each new iPhone must be registered and included in a provisioning profile; register it and create a new build, or have the build administrator re-sign a compatible existing build. A supervisor with a supplied development build for their registered phone can skip building and follow the next section.
+
+## Daily use with an installed development build
+
+| Computer | Command |
+| --- | --- |
+| Windows PowerShell | `.\run.bat` |
+| macOS / Linux | `bash run.sh` |
+
+Keep the computer and iPhone on the same Wi-Fi, then scan the QR code. These scripts install dependencies and run checks each time. For a faster start after dependencies are installed, use `npm start`.
+
+If the network prevents the phone reaching the computer, use `.\run.bat --tunnel` on Windows or `bash run.sh --tunnel` on macOS/Linux. Expo may prompt to install its tunnel helper; a tunnel requires internet access.
+
+Rebuild after changing native dependencies, SDK version, signing/bundle settings or native app configuration. Ordinary TypeScript/UI changes generally only need Metro and a reload. The development build loads code from the development server; this repository does not provide a standalone production distribution workflow.
+
+### Optional local build on macOS
+
+With Xcode **26.4 or newer**, its command-line tools, a connected trusted iPhone and company signing configured:
+
+```sh
+npm ci
+npm run ios
+```
+
+This invokes `expo run:ios --device`, generates the native project if needed, compiles, installs and starts development. After native configuration/dependency changes, regenerate with `npx expo prebuild --clean --platform ios` before rebuilding; this replaces generated native files. Windows and Linux must use the EAS cloud route for iPhone builds. See Expo's [development build guide](https://docs.expo.dev/develop/development-builds/introduction/).
+
+## Use the app
+
+1. Follow or skip onboarding; allow camera access when entering AR. Optionally set your local profile, theme and English/Dutch controls.
+2. Create a named project, choose single or dual layout, and optionally enter a site description and notes. Location is manually entered text, not GPS. The draft saves before AR opens.
+3. Scan textured ground in good light. Select a stable detected surface, or select Manual and tap an approximate ground hit. Confirm the intended ground surface.
+4. Place, drag, move and rotate the container. Fine/coarse movement steps are 1/10 cm and rotation steps are 5°. Lock placement before measuring.
+5. Visit the numbered points in order. Rest the centre of the phone's bottom edge on the ground, upright in portrait, keeping the camera uncovered. Use the same phone, case and posture throughout. Hold still for two seconds, then press capture to confirm ground contact when enabled.
+6. If tracking is interrupted, restore tracking and restart all measurements. Editing placement also clears the captures.
+7. Review all six/nine results and save. Reopen completed reports from History; export opens iOS PDF sharing. Optional AR photos are stored with the project but are not embedded in the PDF.
+
+Drafts restart with a fresh AR scan; saved world coordinates cannot resume a new AR camera session. Projects, profile and preferences stay locally on that phone/browser. There is no login service or cross-device sync. Export needed reports before deleting the app; a PDF is not an importable project backup.
+
+Heights are relative to point 1, not surveyed elevations. Report colours indicate the magnitude of relative height (green ≤2 cm, orange ≤5 cm, red >5 cm); they do not certify container installation suitability. See the technical report for the measurement method and its limits.
+
+## Checks and troubleshooting
 
 ```sh
 npm run typecheck
@@ -114,20 +104,25 @@ npm test
 npm run export
 ```
 
-Export bundles JavaScript and assets for iOS, Android and web. Native compilation,
-live tracking, physical measurements, photo capture and iOS PDF sharing still
-require a development build and physical device. See `TESTING.md` for the original
-AR acceptance checks and `UI_TESTING.md` for redesign checks.
+`export` creates JavaScript/assets in `dist/` for iOS, Android and web. Successful Android bundling does not mean Android is a supported app. Export does not create an installable iPhone build. Device checks are in [TESTING.md](TESTING.md).
 
-## Dual layout
+| Symptom | Action |
+| --- | --- |
+| Node or npm not found | Install Node 22.13+ with npm, reopen the terminal and check both versions. |
+| Missing native module / opened in Expo Go | Open the PLCR development build; rebuild after native changes. |
+| Phone cannot connect | Keep Metro running, use the same Wi-Fi, permit local network access, check firewall/VPN settings, or use `--tunnel`. |
+| EAS project/signing access denied | Verify company Expo login, EAS ownership, company Apple team permissions and phone registration. |
+| Camera denied | Enable camera access for PLCR in iPhone Settings. |
+| Capture stays disabled | Follow the live tracking, distance, tilt and hold feedback; keep ground contact and texture visible. Restart measurements after tracking interruption. |
+| Old JavaScript persists | Stop Metro and run `npx expo start --dev-client --clear`. |
+| Patch fails during install | Use the committed lockfile and Viro version; inspect `patches/` before updating Viro. |
+| Saved-data error on startup | Do not clear storage as the first response. Preserve device data and investigate the validation error; there is no project restore/import feature. |
+| Browser report window blocked | Allow pop-ups for the preview origin and retry export. |
 
-The project layout is saved with the draft and cannot change during measurement.
-The 6 × 6 m footprint contains two adjoining 6 × 3 m containers. Points 1–3 run
-end–midpoint–end along the first outer long edge, 4–6 along the shared seam, and
-7–9 along the opposite outer edge. Shared points are measured once. Reports, PDF
-diagrams, height tables and summaries use all nine captures. Existing projects
-without a layout field are read as the original single layout.
+## Company handover and GitHub publication
 
-This is a JavaScript-only feature; it adds no native dependencies. Physical-device
-acceptance should verify all nine numbered markers, movement/rotation, capture
-order, reset behavior and native PDF sharing.
+The source uses a placeholder bundle ID, has no previous EAS project link, and has no personal support URL. Required company configuration is described above. Keep signing keys, provisioning profiles, account credentials and real project/test data out of Git.
+
+This existing GitHub repository is the shared handover repository. The handover is committed normally, preserving earlier commits. Personal details have been removed from the current source/configuration; earlier commits and Git author metadata remain visible in the repository history.
+
+The previous local development configuration is available at commit `7156227`. To run that version without reverting or changing the shared branch, create a separate local checkout with `git worktree add --detach ../plcr-local 7156227`, then follow the README in that checkout. Do not push its personal configuration back onto the shared branch. Preserve third-party copyright/licence notices in `LICENSE` and dependency packages.

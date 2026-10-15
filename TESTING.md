@@ -1,70 +1,69 @@
-# Verification
+# PLCR verification and regression guide
 
-Local checks:
+## Handover baseline
+
+The project team confirms that the functional app was tested on an iPhone and works. The team collected **35 test measurements**, already known to the company. The raw dataset and reference/error analysis are not included in this repository. No accuracy percentage, error bound or measured workflow duration is asserted here.
+
+The following checklist is for repeatable checks after changes. It replaces the previous milestone/redesign checklists; items are not a claim that a new device test was performed when these documents were written.
+
+## Automated checks
+
+Use Node 22.13+ and the committed lockfile:
 
 ```sh
+npm ci
 npm run typecheck
 npm test
-npx expo export --platform ios --output-dir dist
+npm run export
 ```
 
-Tests cover plane stabilization, frozen world coordinates through anchor
-refinement and furniture discovery, manual/automatic parity, reset continuity,
-fixed dimensions, rotated support geometry, final lock guards, camera-quality
-gates, median capture and relative height calculations. They do not simulate
-physical ARKit accuracy or certify performance outdoors.
+On macOS/Linux also check the shell helper:
 
-## iPhone 15 acceptance
+```sh
+bash -n run.sh
+bash run.sh --help
+```
 
-1. Fully reopen the installed development app after running run.bat. Use a clear
-   textured 6 × 3 m site. Time the complete workflow from opening to six results;
-   the requirement is under three minutes, including scanning and walking.
-2. In daylight, select automatic floor, confirm, place, move and rotate. Check
-   the 6 × 3 m outline against physical known distances. Indoor tests should
-   not use reduced dimensions; this milestone deliberately fixes the size.
-3. Lock placement. Record XYZ/yaw in Debug. Walk around and lower the camera.
-   Let it discover a nearby table/cupboard. Saved pose and target coordinates
-   must stay unchanged. If the entire AR view drifts despite unchanged numbers,
-   record a tracking failure rather than treating it as a reducer pose change.
-4. At point 1, rest the centre of the bottom edge on the ground, upright in
-   portrait. Keep the camera uncovered and texture visible. Verify distance,
-   tilt, tracking and steady-hold progress. Use the always-visible bottom button
-   to confirm ground contact and capture. There is no separate confirmation toggle.
-5. Repeat at points 2–6 using the same phone/case/contact posture. Captured marks
-   turn green; the next mark is highlighted. Results show cm relative to point 1
-   and estimated contact coordinates. On a level site, repeat the sequence to
-   quantify repeatability. Compare against known-height test surfaces separately
-   to measure error. Low sample spread alone must not be called accuracy.
-6. Tilt the phone, move it, stand too far away, obscure texture, and background
-   the app. Capture must be disabled. A tracking interruption requires restarting
-   all measurements before continuing with a consistent reference.
-7. Edit placement: six captures disappear, movement is available, same world
-   origin remains. Relock and repeat. Rescan ground: clear everything except live
-   camera/tracking/plane cache. Repeat ten times without a black camera.
-8. Repeat the placement and six-point workflow using Manual ground. Behavior
-   after confirmation and final lock must match automatic mode.
-9. Test daylight glare and shadowed/textured sites. Record success/failure and
-   elapsed time; daylight operation and the three-minute target remain pending
-   real-device acceptance. A new native build must not request location access.
+On Windows check `.\run.bat --help`, then use it for installation/startup. The batch workflow needs a real Windows machine for verification.
 
-The first ground Y is still an AR estimate. Horizontal contact coordinates use
-the camera as a proxy, with an uncalibrated camera-to-edge offset. Six samples do
-not reconstruct terrain between points or prove absence of obstacles/clearance.
+The suite covers plane stability, manual/automatic selection guards, frozen coordinates, placement lock/reset, fixed single/dual geometry, capture-quality gates, median/reference calculations, project validation and report generation. Export checks JavaScript and assets, not native compilation, physical accuracy or Android support.
 
-## Close-camera crash regression
+## Browser preview
 
-The numbered ground markers now use flat quad strokes, without native 3D text
-or billboarding. Locked measurement nodes have no active drag callback or drag
-plane configuration. This is a mitigation for the reported close-camera native
-exit; the underlying cause requires the iPhone crash report and is not confirmed.
+Run `npm run web` and check:
 
-Reload the development bundle and fully reopen the app. Approach every numbered
-square, lower the camera to bottom-edge ground contact, and repeat all six
-captures. Check movement still works before final lock and remains disabled
-after it. Metro should print AR INTERACTION, MEASUREMENT STATUS and a throttled
-MEASUREMENT CAMERA heartbeat during measurement.
+- Onboarding navigation/skip, home, menus and back/close actions.
+- Theme, English/Dutch controls and optional profile persist across reloads; invalid email is rejected.
+- New-project name validation, single/dual layout, saved drafts and the iPhone-only AR explanation.
+- History search, favourites, deletion confirmation/cancellation and persistence after reload.
+- Compact/tall viewports, keyboard behaviour, scrolling, larger text and absence of horizontal overflow.
+- Contact shows a supervisor message with an empty support URL, or opens the configured company page.
+- Completed reports and print/save-as-PDF with pop-ups allowed, when completed data exists in the browser. Use test data only in an isolated test browser; do not ship seeded measurements.
 
-If iOS closes the app to the home screen, collect the latest AR Placement crash
-report from Settings > Privacy & Security > Analytics & Improvements > Analytics
-Data. A matching JetsamEvent report may indicate an OS memory termination.
-JavaScript logs and successful bundle export cannot rule out native crashes.
+## Physical iPhone regression
+
+Install a company-signed development build on a registered ARKit-capable iPhone; Expo Go and Simulator are unsuitable. Use a textured, adequately lit site large enough for the real 6 × 3 m or 6 × 6 m footprint.
+
+1. Check first launch, camera permission grant/denial/recovery, safe areas and portrait controls.
+2. Create a single-layout draft. Select automatic ground, confirm and place. Check physical scale against known distances, drag, 1/10 cm movement, ±5° rotation and rotation reset.
+3. Lock placement. Check movement/rotation are blocked. Walk around, lower the camera and allow more surfaces to be discovered; stored pose and targets must remain unchanged. Distinguish AR tracking drift from application pose changes using Debug values.
+4. Capture P1–P6 in order, with the same phone/case and bottom-edge ground contact. Verify the next target is highlighted and captured markers change state. Approach every marker closely to check native stability.
+5. Move too far away, tilt, move during the hold, obscure texture and background the app. Capture must stay disabled while quality fails. After tracking interruption, require restarting the measurement sequence.
+6. Edit placement and verify captures clear. Rescan repeatedly during the active session and verify the camera remains live. Test the explicit native tracking restart separately.
+7. Repeat using Manual ground selection; selection/confirmation/lock/capture behaviour must remain consistent.
+8. Capture a photo, finish and save. Force-close/reopen, inspect History and reopen the completed report. Check real values, data details, min/max/range and photo retention.
+9. Export/share the PDF to a chosen destination; verify readable layout, metadata, six values and limitations. Cancel sharing and confirm the project remains saved. Photos are not embedded in the PDF.
+10. Repeat with dual layout: two adjoining containers, nine unique markers, shared P4–P6 seam, all nine captures required, nine results/table entries and correct square report diagram. Layout must survive draft reload/reset/restart.
+11. Check search/favourites/deletion, persisted profile/preferences and reopening drafts with a fresh scan. Phone and browser data must remain separate.
+
+## Measurement evidence
+
+For future measurement comparisons, record device/iOS/app build, site conditions, phone/case/contact posture, reference method, raw values, repeated runs and any tracking interruptions. Compare against independently known heights and report both error and repeatability. Short-window spread alone is not accuracy. Measure elapsed time if assessing a workflow-duration target.
+
+Keep datasets in company test records and link them from the handover when available; do not commit personal project/profile/site data to a public repository.
+
+## Debugging native failures
+
+Metro logs include `AR NAVIGATOR MOUNTED/UNMOUNTED`, `AR INTERACTION`, `MEASUREMENT CAMERA`, `MEASUREMENT STATUS` and `GROUND CONTACT CAPTURE`. Debug also exposes placement/capture values. Treat logs as potentially containing site measurements when sharing them.
+
+If iOS terminates the app, collect the matching crash/termination report from Settings → Privacy & Security → Analytics & Improvements → Analytics Data. A matching JetsamEvent can indicate memory termination. Record device/build, reproduction steps and timestamp; successful TypeScript/tests/export cannot rule out native crashes.

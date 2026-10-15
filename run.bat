@@ -52,6 +52,8 @@ call npx --yes eas-cli@latest login
 if errorlevel 1 goto failed
 
 :configure
+call npx --yes eas-cli@latest init
+if errorlevel 1 goto failed
 call npx --yes eas-cli@latest build:configure --platform ios
 if errorlevel 1 goto failed
 call npx --yes eas-cli@latest device:create

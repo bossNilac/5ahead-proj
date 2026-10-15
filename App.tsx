@@ -82,6 +82,7 @@ function PLCR() {
   const palette = palettes[data.preferences.theme];
   const t = translator(data.preferences.language);
   const selected = data.projects.find((p) => p.id === selectedId);
+  const supportUrl = Constants.expoConfig?.extra?.supportUrl;
   useEffect(() => {
     if (!store.loading && !store.error && !data.preferences.onboarded)
       setRoute("onboarding");
@@ -693,19 +694,21 @@ function PLCR() {
           {dialog === "contact" && (
             <>
               <Copy palette={palette}>
-                Report a problem or send feedback through the project’s GitHub
-                issue tracker. Include your device, app version and the steps to
-                reproduce the issue.
+                {supportUrl
+                  ? "Report a problem or send feedback through the company’s support page. Include your device, app version and the steps to reproduce the issue."
+                  : "Contact your company supervisor for support. Include your device, app version and the steps to reproduce the issue."}
               </Copy>
-              <Action
-                label="Open issue tracker"
-                icon="mail"
-                onPress={() =>
-                  void Linking.openURL(
-                    "https://github.com/bossNilac/5ahead-proj/issues",
-                  ).catch((e) => Alert.alert("Could not open link", String(e)))
-                }
-              />
+              {supportUrl && (
+                <Action
+                  label="Open support page"
+                  icon="mail"
+                  onPress={() =>
+                    void Linking.openURL(supportUrl).catch((e) =>
+                      Alert.alert("Could not open link", String(e)),
+                    )
+                  }
+                />
+              )}
             </>
           )}
         </KeyboardAvoidingView>

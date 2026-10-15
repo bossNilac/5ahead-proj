@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "ios": {
-      "bundleIdentifier": "com.calinbaculescu.fiveahead.arplacement",
+      "bundleIdentifier": "com.example.plcr",
       "supportsTablet": false,
       "infoPlist": {
         "NSCameraUsageDescription": "Use the camera to position a container footprint and measure ground contact points.",
@@ -27,9 +27,7 @@
       "expo-sharing"
     ],
     "extra": {
-      "eas": {
-        "projectId": "a35c8e96-890e-4cdb-adad-6ff239f2104e"
-      }
+      "supportUrl": ""
     },
     "userInterfaceStyle": "automatic"
   }
